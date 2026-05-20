@@ -15,6 +15,7 @@ def criar_produto():
     if not conexao:
         return
     
+    cursor = None
     try:
         cursor = conexao.cursor()
 
@@ -32,7 +33,7 @@ def criar_produto():
         
         print('\nProduto cadastrados com sucesso! ')
     
-    except ValueError as erro:
+    except Error as erro:
         print(f'Erro ao cadastrar produto: {erro}')
     
     finally:
@@ -41,11 +42,55 @@ def criar_produto():
         fechar_conexao(conexao)
 
 
-
-
 def listar_produtos():
-    # Exercicio 2: listar todos os produtos cadastrados com id, descricao e preco.
-    return
+    conexao = conectar()
+    if not conexao:
+        return
+    cursor = None
+    try:
+        cursor = conexao.cursor()
+        
+        sql = " SELECT id, descricao, preco FROM produtos"
+        
+        cursor.execute(sql)
+
+        produtos = cursor.fetchall()
+
+        if not produtos:
+            print('\nNenhum produto cadastrado no momento.')
+            return
+        print('\n===LISTA DE PRODUTOS===')
+        
+        for produto in produtos:
+            print(f""" 
+ID: {produto[0]}
+Decrição: {produto[1]}
+Preço: R${produto[2]:.2f}
+--------------------------
+""")
+    
+    except Error as erro:
+        print(f'\nErro ao listar os produtos: {erro}')
+     
+    finally:
+        if cursor:
+            cursor.close()
+        fechar_conexao(conexao)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def atualizar_produto():
@@ -122,7 +167,7 @@ def menu():
         print("\n=== MENU AC4 - CRUD COMPLETO ===")
         for codigo, (descricao, _) in opcoes.items():
             print(f"{codigo} - {descricao}")
-        print("0 - Voltar")
+        print("0 - Sair")
 
         escolha = input("Escolha uma opcao: ").strip()
 
