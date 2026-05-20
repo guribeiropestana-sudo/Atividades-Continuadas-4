@@ -409,7 +409,6 @@ def excluir_vendedor():
         
         fechar_conexao(conexao)
 
-
 # VENDAS
 
 def criar_venda_com_itens():
@@ -502,7 +501,6 @@ def criar_venda_com_itens():
 
         fechar_conexao(conexao)
 
-
 def listar_vendas_completas():
     # Exercicio 10: listar vendas com vendedor e itens (produto, quantidade, valor_unitario, valor_total).
     conexao = conectar()
@@ -560,12 +558,129 @@ Valor Total: R${venda[5]:.2f}
 
 def atualizar_venda_e_itens():
     # Exercicio 11: atualizar dados da venda (desconto/valor_final) e seus itens.
-    return
+    conexao = conectar()
 
+    if not conexao:
+        return
 
+    cursor = None
+
+    try:
+        cursor = conexao.cursor()
+        
+        id_venda = int(input('Digite o id da venda que deseja atualizar: '))
+
+        sql_venda = 'SELECT * FROM vendas WHERE id = %s'
+        cursor.execute(sql_venda,(id_venda,))
+        venda = cursor.fetchone()
+        
+        if not venda:
+            print('\nVenda não encontrada.')
+            return
+        
+        print(f'\nVenda encontrada: ID {venda[0]}')
+        
+        desconto = float(input('Digite o desconto (%): '))
+        
+        sql_update_venda = """
+        UPDATE vendas 
+        SET desconto =%s
+        WHERE id =%s
+        """
+        cursor.execute(sql_update_venda,(desconto,id_venda))
+
+        sql_itens = 'SELECT * FROM vendas_produtos WHERE venda_id = %s'
+        cursor.execute(sql_itens,(id_venda,))
+        itens = cursor.fetchall()
+
+        if not itens:
+            print('\nNenhum item encontrado para essa venda.')
+        else:
+            for item in itens: 
+                novo_preco = float(input(f'Novo preço do produto ID {item[2]}: '))
+                novo_total = novo_preco * item[3]
+                
+                sql_update_item = """
+                UPDATE vendas_produtos
+                SET valor_unitario = %s,
+                    valor_total = %s
+                WHERE id = %s
+                """
+
+                cursor.execute(sql_update_item,(novo_preco, novo_total, item[0]))
+
+        conexao.commit()
+        print('\nVenda e itens atualizados com sucesso! ')
+
+    except Error as erro:
+        print(f'\nErro ao atualizar venda: {erro}')
+
+    except ValueError:
+        print('\nDigite valores válidos.')
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        fechar_conexao(conexao)
+    
 def excluir_venda():
     # Exercicio 12: excluir uma venda por id removendo primeiro os itens de vendas_produtos.
-    return
+    conexao = conectar()
+
+    if not conexao:
+        return
+
+    cursor = None
+
+    try:
+        cursor = conexao.cursor()
+        id_venda = int(input('Digite o id da venda que deseja excluir: '))
+
+        sql_venda = 'SELECT * FROM vendas WHERE id = %s'
+        cursor.execute(sql_venda,(id_venda,))
+        venda = cursor.fetchone()
+
+        if not venda:
+            print('\nVenda não encontrada.')
+            return
+        
+        print(f'\nVenda encontrada: ID {venda[0]}')
+
+        confirmacao = input('Deseja realmente excluir essa venda? s/n ').strip().lower()
+
+        if not confirmacao:
+            print('\nDigite uma opção válida.')
+            return
+
+        confirmacao = confirmacao[0]
+
+        if confirmacao != 's':
+            print('\nOperação cancelada')
+            return
+        
+        sql_itens = 'DELETE FROM vendas_produtos WHERE venda_id = %s'
+        cursor.execute (sql_itens,(id_venda,))
+
+        sql_venda_delete = 'DELETE FROM vendas WHERE id = %s'
+        cursor.execute (sql_venda_delete,(id_venda,))
+
+        conexao.commit()
+
+        print('\nVenda excluída com sucesso!')    
+    
+    
+    except Error as erro:
+        print(f'\nErro ao excluir venda: {erro}')
+
+    except ValueError:
+        print('\nDigite valores válidos.')
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        fechar_conexao(conexao)
 
 
 def menu():
