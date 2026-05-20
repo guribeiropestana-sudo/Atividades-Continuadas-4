@@ -41,7 +41,6 @@ def criar_produto():
             cursor.close()
         fechar_conexao(conexao)
 
-
 def listar_produtos():
     conexao = conectar()
     if not conexao:
@@ -76,7 +75,6 @@ Preço: R${produto[2]:.2f}
         if cursor:
             cursor.close()
         fechar_conexao(conexao)
-
 
 def atualizar_produto():
     # Exercicio 3: atualizar descricao e/ou preco de um produto existente por id.
@@ -148,8 +146,7 @@ def atualizar_produto():
         if cursor:
             cursor.close()
         fechar_conexao(conexao)
-
-                                
+                           
 def excluir_produto():
     # Exercicio 4: excluir um produto por id, tratando dependencias em vendas_produtos.
     conexao = conectar()
@@ -354,7 +351,6 @@ def atualizar_vendedor():
         
         fechar_conexao(conexao)
 
-
 def excluir_vendedor():
     # Exercicio 8: excluir vendedor por id, validando se possui vendas vinculadas.
     conexao = conectar()
@@ -418,13 +414,149 @@ def excluir_vendedor():
 
 def criar_venda_com_itens():
     # Exercicio 9: criar uma venda e inserir itens na tabela vendas_produtos com quantidade e valores.
-    return
+    conexao = conectar()
+
+    if not conexao:
+        return
+
+    cursor = None
+
+    try:
+        
+        cursor = conexao.cursor()
+        
+        id_vendedor = int(input('Digite o id do vendedor: '))
+        
+        sql_vendedor = 'SELECT * FROM vendedores WHERE id = %s'
+        
+        cursor.execute(sql_vendedor,(id_vendedor,))
+        
+        vendedor = cursor.fetchone()
+        
+        if not vendedor:
+            print('\nVendedor não encontrado.')
+            return
+        
+        print(f'\nVendedor selecionado: {vendedor[1]}')
+
+        sql_venda = """
+        INSERT INTO vendas (vendedor_id)
+        VALUES (%s)
+        """
+        
+        cursor.execute(sql_venda, (id_vendedor,))
+        
+        conexao.commit()
+        
+        id_venda = cursor.lastrowid
+        
+        print(f'Venda criada com ID: {id_venda}')
+
+        while True:
+            
+            id_produto = int(input('Digite o id do produto (ou 0 para finalizar): '))
+            
+            if id_produto == 0:
+                break
+            
+            sql_produto = 'SELECT * FROM produtos WHERE id = %s'
+            
+            cursor.execute(sql_produto,(id_produto,))
+            
+            produto = cursor.fetchone()
+            
+            if not produto:
+                print('\nProduto não encontrado.')
+                continue
+            
+            quantidade = int(input('Quantidade: '))
+            
+            if quantidade <= 0:
+                print('Quantidade inválida.')
+                continue
+
+            valor_unitario = produto[2]
+            total = valor_unitario * quantidade
+            sql_item ="""INSERT INTO vendas_produtos (venda_id, produto_id, quantidade, valor_unitario, valor_total)
+            VALUES (%s, %s, %s, %s, %s)
+            """
+            
+            valores = (id_venda, id_produto, quantidade, valor_unitario, total)
+            
+            cursor.execute(sql_item,valores)
+            
+            print('\nItem adicionado com sucesso!')
+        
+        conexao.commit()
+        print('\nVenda finalizada com sucesso!')
+
+    except Error as erro:
+        print(f'\nErro ao criar venda: {erro}')
+
+    except ValueError:
+        print('\nDigite valores válidos.')
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        fechar_conexao(conexao)
 
 
 def listar_vendas_completas():
     # Exercicio 10: listar vendas com vendedor e itens (produto, quantidade, valor_unitario, valor_total).
-    return
+    conexao = conectar()
 
+    if not conexao:
+        return
+
+    cursor = None
+
+    try:
+        cursor = conexao.cursor()
+        sql = """
+        SELECT 
+    v.id AS venda_id,
+    ven.nome AS vendedor,
+    p.descricao AS produto,
+    vp.quantidade,
+    vp.valor_unitario,
+    vp.valor_total
+FROM vendas v
+JOIN vendedores ven ON ven.id = v.vendedor_id
+JOIN vendas_produtos vp ON vp.venda_id = v.id
+JOIN produtos p ON p.id = vp.produto_id
+ORDER BY v.id;
+        """
+
+        cursor.execute(sql)
+        vendas = cursor.fetchall()
+        if not vendas:
+            print('\nNenhuma venda encontrada.')
+            return
+        print('\n=== LISTA DE VENDAS COMPLETAS ===')
+        
+        for venda in vendas:
+            print(f"""
+===============================
+Venda ID: {venda[0]}
+Vendedor: {venda[1]}
+Produto: {venda[2]}
+Quantidade: {venda[3]}
+Valor Unitário: R${venda[4]:.2f}
+Valor Total: R${venda[5]:.2f}
+===============================
+""")
+
+
+    except Error as erro:
+        print(f'\nErro ao listar vendas: {erro}')
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        fechar_conexao(conexao)
 
 def atualizar_venda_e_itens():
     # Exercicio 11: atualizar dados da venda (desconto/valor_final) e seus itens.
