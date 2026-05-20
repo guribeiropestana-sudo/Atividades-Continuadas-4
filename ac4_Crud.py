@@ -218,22 +218,200 @@ def excluir_produto():
 
 def criar_vendedor():
     # Exercicio 5: cadastrar um novo vendedor na tabela vendedores.
-    return
+    conexao = conectar()
+    if not conexao:
+        return
+    
+    cursor = None
+    try:
+        cursor = conexao.cursor()
+        
+        nome = input('Digite o nome do vendedor: ').strip()
+        
+        sql = 'INSERT INTO vendedores(nome) VALUES (%s)'
+        
+        valores = (nome,)
+        
+        cursor.execute(sql,valores)
 
+        conexao.commit()
+
+        print('\nVendedor cadastrado com sucesso!')
+    
+    except Error as erro:
+        print(f'\nErro ao cadastrar um vendedor: {erro}')
+    
+    except ValueError:
+        print('\nDigite um nome válido.')
+    
+    finally:
+        if cursor:
+            cursor.close()
+        fechar_conexao(conexao)
 
 def listar_vendedores():
     # Exercicio 6: listar todos os vendedores cadastrados.
-    return
+    conexao = conectar()
+    if not conexao:
+        return
+    
+    cursor = None
+    try:
+        cursor = conexao.cursor()
+        
+        sql = 'SELECT id, nome FROM vendedores'
+        
+        cursor.execute(sql)
+        
+        vendedores = cursor.fetchall()
+        
+        if not vendedores:
+            print('\nNão há vendedores cadastrados no momento.')
+        
+        print('\n===LISTA DE VENDEDORES===')
+        
+        print(f"""
+            ID: {vendedores[0]}
+            Nome: {vendedores[1]}
+            ---------------------
+            """)
 
+    except Error as erro:
+        print(f'\nErro ao listar os vendedores: {erro}')
+
+    finally:
+        if cursor:
+            cursor.close()
+        
+        fechar_conexao(conexao)
 
 def atualizar_vendedor():
     # Exercicio 7: atualizar o nome de um vendedor existente por id.
-    return
+    conexao = conectar()
+    if not conexao:
+        return
+    
+    cursor = None
+    try:
+        cursor = conexao.cursor()
+        while True:
+            id_vendedor = int(input('Digite o id do vendedor que deseja atualizar: '))
+            
+            sql_verificar = 'SELECT * FROM vendedores WHERE id = %s'
+            
+            cursor.execute(sql_verificar,(id_vendedor,))
+            
+            vendedor = cursor.fetchone()
+            
+            if not vendedor:
+                print('\nNenhum vendedor encontrado.')
+                continue
+            
+            print('\n===VENDEDOR SELECIONADO===')
+            
+            print(f"""
+            ID: {vendedor[0]}
+            Nome: {vendedor[1]}
+            -------------------
+            """)
+            
+            confirmacao = input('Esse é o vendedor certo? s/n').strip().lower()
+            
+            if not confirmacao:
+                print('Digite uma resposta válida.')
+                continue
+            
+            confirmacao = confirmacao[0]
+            
+            if confirmacao == 's':
+                break
+            
+            elif confirmacao == 'n':
+                print('\nSelecione outro vendedor.')
+                continue
+            
+            else:
+                print('Opção inválida.')
+        novo_nome = input('Novo nome do vendedor: ').strip()
+        sql = """
+        UPDATE vendedores
+        SET nome = %s 
+        WHERE id = %s"""
+        valores = (novo_nome, id_vendedor)
+        cursor.execute(sql,valores)
+        conexao.commit()
+        print('\nVendedor atualizado com sucesso! ')
+
+    except Error as erro:
+        print(f'\nErro ao atualizar o vendedor: {erro}')
+    
+    except ValueError:
+        print('\nDigite valores válidos. ')
+
+    finally:
+        if cursor:
+            cursor.close()
+        
+        fechar_conexao(conexao)
 
 
 def excluir_vendedor():
     # Exercicio 8: excluir vendedor por id, validando se possui vendas vinculadas.
-    return
+    conexao = conectar()
+    if not conexao:
+        return
+    
+    cursor = None
+    try:
+        cursor = conexao.cursor()
+        while True:
+            id_vendedor = int(input('Digite o id do vendedor que deseja excluir: '))
+            sql_verificar = 'SELECT * FROM vendedores WHERE id = %s'
+            cursor.execute(sql_verificar,(id_vendedor,))
+            vendedor = cursor.fetchone()
+            if not vendedor:
+                print('\nNenhum vendedor encontrado.')
+            print('\n===VENDEDOR SELECIONADO===')
+            print(f"""
+            ID: {vendedor[0]}
+            Nome: {vendedor[1]}
+            ------------------""")
+
+            confirmacao = input('Deseja excluir este vendedor? (s/n): ').strip().lower()
+
+            if not confirmacao:
+                print('\nDigite uma resposta válida.')
+                continue
+
+            confirmacao = confirmacao[0]
+
+            if confirmacao == 's':
+                break
+
+            elif confirmacao == 'n':
+                print('\nSelecione outro vendedor.')
+                continue
+
+            else:
+                print('\nOpção inválida.')
+        
+        sql = 'DELETE FROM vendedores WHERE id = %s'
+        cursor.execute(sql,(id_vendedor,))
+        conexao.commit()
+        print('\nVendedor excluído com sucesso! ')
+
+
+    except Error as erro:
+        print(f'\nErro ao atualizar o vendedor: {erro}')
+    
+    except ValueError:
+        print('\nDigite valores válidos. ')
+
+    finally:
+        if cursor:
+            cursor.close()
+        
+        fechar_conexao(conexao)
 
 
 # VENDAS
