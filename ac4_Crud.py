@@ -3,12 +3,44 @@
 # Exercicios de CRUD completo (Produtos, Vendedores e Vendas)
 # Entrega - dia 24/05/2026
 
-
+from mysql.connector import Error
+from conexao import conectar,fechar_conexao
 # PRODUTOS
 
 def criar_produto():
     # Exercicio 1: cadastrar um novo produto na tabela produtos (descricao, preco).
-    return
+    
+    conexao = conectar()
+
+    if not conexao:
+        return
+    
+    try:
+        cursor = conexao.cursor()
+
+        descricao = input('Digite a descrição do produto: ').strip()
+        preco = float(input('Digite o preço do produto: R$'))
+
+        sql = """INSERT INTO produtos (descricao,preco)
+        VALUES (%s, %s)"""
+        
+        valores = (descricao,preco)
+        
+        cursor.execute(sql,valores)
+        
+        conexao.commit()
+        
+        print('\nProduto cadastrados com sucesso! ')
+    
+    except ValueError as erro:
+        print(f'Erro ao cadastrar produto: {erro}')
+    
+    finally:
+        if cursor:
+            cursor.close()
+        fechar_conexao(conexao)
+
+
 
 
 def listar_produtos():
