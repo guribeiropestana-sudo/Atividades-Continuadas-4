@@ -23,3 +23,8 @@ def fechar_conexao(conexao):
     if conexao and conexao.is_connected():
         conexao.close()
         print("Conexão encerrada.")
+
+conexao = conectar()
+
+if conexao:
+    fechar_conexao(conexao)
