@@ -89,9 +89,9 @@ def atualizar_produto():
         while True:
             id_produto = int(input('Digite o id do produto que deseja atualizar: '))
             
-            sql_vereficar = "SELECT * FROM produtos WHERE id=%s"
+            sql_verificar = "SELECT * FROM produtos WHERE id=%s"
 
-            cursor.execute(sql_vereficar,(id_produto,))
+            cursor.execute(sql_verificar,(id_produto,))
 
             produto = cursor.fetchone()
             
@@ -105,20 +105,22 @@ def atualizar_produto():
             Descrição atual: {produto[1]}
             Preço atual: R${produto[2]:.2f}""")
             
-            confirmacao = input('Esse é o produto certo? s/n ').strip()[0].lower()
+            confirmacao = input('Esse é o produto certo? s/n ').strip().lower()
             
-            if confirmacao in 's':
+            if not confirmacao:
+                print('Digite uma resposta válida.')
+            
+            confirmacao = confirmacao[0]
+
+            if confirmacao == 's':
                 break
             
-            elif confirmacao in 'n':
+            elif confirmacao == 'n':
                 print('\nSelecione outro produto.')
                 continue
             
             else:
                 print('Opção inválida.')
-
-
-
 
         nova_descricao = input('Nova descrição do produto: ').strip()
         novo_preco = float(input('Novo preço do produto: R$'))
@@ -148,12 +150,69 @@ def atualizar_produto():
         fechar_conexao(conexao)
 
                                 
-
-
 def excluir_produto():
     # Exercicio 4: excluir um produto por id, tratando dependencias em vendas_produtos.
-    return
+    conexao = conectar()
+    if not conexao:
+        return
+    cursor = None
+    try: 
+        cursor = conexao.cursor()
 
+        while True: 
+    
+            id_produto = int(input('Digite o id do produto que deseja deletar: '))
+            
+            sql_verificar = 'SELECT * FROM produtos WHERE id=%s'
+            
+            cursor.execute(sql_verificar,(id_produto,))
+            
+            produto = cursor.fetchone()
+            
+            if not produto:
+                print('\nNenhum produto encontrado.')
+                continue
+            
+            print('\n===PRODUTO SELECIONADO===')
+            print(f"""
+            ID: {produto[0]}
+            Descrição: {produto[1]}
+            Preço: R${produto[2]:.2f}
+            --------------------
+            """)
+
+            confirmacao = input('Deseja excluir esse produto? s/n ').strip().lower()
+            
+            if not confirmacao:
+                print('\nDigite uma opção válida')
+                continue
+            
+            confirmacao = confirmacao[0]
+            
+            if confirmacao == 's':
+                break
+
+            elif confirmacao == 'n':
+                print('\nSelecione outro produto.')
+                continue
+            
+            else:
+                print('\nOpção inválida.')
+        sql = "DELETE FROM produtos WHERE id = %s"
+        cursor.execute(sql,(id_produto,))
+        conexao.commit()
+        print('\nProduto excluído com sucesso! ')
+    
+    except Error as erro:
+        print(f'\nErro ao excluir produto: {erro}')
+    
+    except ValueError:
+        print('\nDigite um id válido.')
+    
+    finally:
+        if cursor:
+            cursor.close()    
+        fechar_conexao(conexao)
 
 # VENDEDORES
 
