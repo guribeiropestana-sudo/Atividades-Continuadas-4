@@ -64,7 +64,7 @@ def listar_produtos():
         for produto in produtos:
             print(f""" 
 ID: {produto[0]}
-Decrição: {produto[1]}
+Descrição: {produto[1]}
 Preço: R${produto[2]:.2f}
 --------------------------
 """)
@@ -78,24 +78,76 @@ Preço: R${produto[2]:.2f}
         fechar_conexao(conexao)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def atualizar_produto():
     # Exercicio 3: atualizar descricao e/ou preco de um produto existente por id.
-    return
+    conexao = conectar()
+    if not conexao:
+        return
+    cursor = None
+    try: 
+        cursor = conexao.cursor()
+        while True:
+            id_produto = int(input('Digite o id do produto que deseja atualizar: '))
+            
+            sql_vereficar = "SELECT * FROM produtos WHERE id=%s"
+
+            cursor.execute(sql_vereficar,(id_produto,))
+
+            produto = cursor.fetchone()
+            
+            if not produto:
+                print('\nProduto não encontrado.')
+                continue
+            
+            print('\n===PRODUTO SELECIONADO===')
+            print(f"""
+            ID: {produto[0]}
+            Descrição atual: {produto[1]}
+            Preço atual: R${produto[2]:.2f}""")
+            
+            confirmacao = input('Esse é o produto certo? s/n ').strip()[0].lower()
+            
+            if confirmacao in 's':
+                break
+            
+            elif confirmacao in 'n':
+                print('\nSelecione outro produto.')
+                continue
+            
+            else:
+                print('Opção inválida.')
+
+
+
+
+        nova_descricao = input('Nova descrição do produto: ').strip()
+        novo_preco = float(input('Novo preço do produto: R$'))
+
+        sql = """
+        UPDATE produtos
+        SET descricao = %s, preco = %s
+        WHERE id = %s"""
+            
+        valores = (nova_descricao, novo_preco, id_produto)
+            
+        cursor.execute(sql, valores)
+        
+        conexao.commit()
+        
+        print('\nProduto atualizado com sucesso! ')
+    
+    except Error as erro:
+        print(f'Erro ao atualizar o produto: {erro}')
+    
+    except ValueError:
+        print('\nDigite valores válidos. ')
+    
+    finally:
+        if cursor:
+            cursor.close()
+        fechar_conexao(conexao)
+
+                                
 
 
 def excluir_produto():
